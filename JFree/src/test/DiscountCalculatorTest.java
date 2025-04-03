@@ -67,5 +67,4 @@ public class DiscountCalculatorTest {
         // Act & Assert
         assertEquals(5, discountCalculator.getDiscountPercentage());
     }
-
 }
