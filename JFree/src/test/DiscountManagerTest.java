@@ -59,11 +59,11 @@ public class DiscountManagerTest {
     }
 
     @Test
-    public void testCalculatePriceWhenDiscountsSeasonIsTrueAndSpecialWeekIsFalse() {
+    public void testCalculatePriceWithEvenWeekDiscount() {
         // Arrange
         boolean isDiscountsSeason = true;
         double originalPrice = 100.0;
-        double expectedPrice = 7.0 * originalPrice; // Assuming the discount is 7% for even weeks
+        double expectedPrice = 0.93 * originalPrice; // discount is 7% for even weeks
 
         Mockery mockingContext = new Mockery();
         IDiscountCalculator mockedDependency = mockingContext.mock(IDiscountCalculator.class);
@@ -85,4 +85,72 @@ public class DiscountManagerTest {
         mockingContext.assertIsSatisfied();
     }
 
+    @Test
+    public void testCalculatePriceWithOddWeekDiscount() {
+        boolean isDiscountsSeason = true;
+        double originalPrice = 100.0;
+        double expectedPrice = originalPrice * 0.95; // 5% discount for odd weeks
+
+        Mockery mockingContext = new Mockery();
+        IDiscountCalculator mockedDependency = mockingContext.mock(IDiscountCalculator.class);
+
+        mockingContext.checking(new Expectations() {{
+            oneOf(mockedDependency).isTheSpecialWeek();
+            will(returnValue(false));
+            oneOf(mockedDependency).getDiscountPercentage();
+            will(returnValue(5));
+        }});
+
+        DiscountManager discountManager = new DiscountManager(isDiscountsSeason, mockedDependency);
+        double actualPrice = discountManager.calculatePriceAfterDiscount(originalPrice);
+
+        assertEquals(expectedPrice, actualPrice, 0.01);
+        mockingContext.assertIsSatisfied();
+    }
+
+    @Test
+    public void testCalculatePriceWithZeroOriginalPrice() {
+        boolean isDiscountsSeason = true;
+        double originalPrice = 0.0;
+        double expectedPrice = 0.0;
+
+        Mockery mockingContext = new Mockery();
+        IDiscountCalculator mockedDependency = mockingContext.mock(IDiscountCalculator.class);
+
+        mockingContext.checking(new Expectations() {{
+            oneOf(mockedDependency).isTheSpecialWeek();
+            will(returnValue(false));
+            oneOf(mockedDependency).getDiscountPercentage();
+            will(returnValue(7));
+        }});
+
+        DiscountManager discountManager = new DiscountManager(isDiscountsSeason, mockedDependency);
+        double actualPrice = discountManager.calculatePriceAfterDiscount(originalPrice);
+
+        assertEquals(expectedPrice, actualPrice, 0.01);
+        mockingContext.assertIsSatisfied();
+    }
+
+    @Test
+    public void testCalculatePriceWithNegativeOriginalPrice() {
+        boolean isDiscountsSeason = true;
+        double originalPrice = -100.0;
+        double expectedPrice = 0.0; // Assuming discount doesn't apply to negative values
+
+        Mockery mockingContext = new Mockery();
+        IDiscountCalculator mockedDependency = mockingContext.mock(IDiscountCalculator.class);
+
+        mockingContext.checking(new Expectations() {{
+            oneOf(mockedDependency).isTheSpecialWeek();
+            will(returnValue(false));
+            oneOf(mockedDependency).getDiscountPercentage();
+            will(returnValue(7));
+        }});
+
+        DiscountManager discountManager = new DiscountManager(isDiscountsSeason, mockedDependency);
+        double actualPrice = discountManager.calculatePriceAfterDiscount(originalPrice);
+
+        assertEquals(expectedPrice, actualPrice, 0.01);
+        mockingContext.assertIsSatisfied();
+    }
 }
